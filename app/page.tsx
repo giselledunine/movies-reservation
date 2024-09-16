@@ -46,7 +46,7 @@ interface User {
     email: string;
 }
 
-export function ModeToggle() {
+function ModeToggle() {
     const { setTheme } = useTheme();
 
     return (
@@ -73,7 +73,7 @@ export function ModeToggle() {
     );
 }
 
-export function DatePickerDemo() {
+function DatePickerDemo() {
     const [date, setDate] = useState<Date | undefined>(new Date());
 
     useEffect(() => {
@@ -105,7 +105,7 @@ export function DatePickerDemo() {
     );
 }
 
-export function AvatarDemo({ user }: { user: User | null }) {
+function AvatarDemo({ user }: { user: User | null }) {
     return (
         <Avatar>
             {user ? (
