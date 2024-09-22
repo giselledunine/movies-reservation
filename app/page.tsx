@@ -2,43 +2,42 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { CalendarIcon } from "@radix-ui/react-icons";
+
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
-import { useTheme } from "next-themes";
+
+//components
+import { ModeToggle } from "@/components/ModeToggle";
+import { DatePicker } from "@/components/DatePicker";
+import { AvatarIcon } from "@/components/AvatarIcon";
 
 //shadcn ui
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     DropdownMenu,
+    DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 interface Movie {
-    id: number;
-    title: string;
-    description: string;
+    movie_id: number;
+    movie_title: string;
+    genre_name: string;
+    monday_showtimes: string[];
+    movie_poster: string;
 }
+
+type KeysEndingWithId<T> = {
+    [K in keyof T as K extends `${string}Id` ? K : never]: number;
+};
 
 interface User {
     id: number;
@@ -46,77 +45,23 @@ interface User {
     email: string;
 }
 
-function ModeToggle() {
-    const { setTheme } = useTheme();
+function MovieSchedule({ date, movie }: { date: Date; movie: Movie }) {
+    const dayOfWeek: string = format(date, "eeee").toLowerCase();
+    const dayOfWeekShowtimes: string = `${dayOfWeek}_showtimes`;
+    const moviesByDay: string[] =
+        movie[dayOfWeekShowtimes as keyof KeysEndingWithId<Movie>];
+    console.table(moviesByDay);
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                    <SunIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span className="sr-only">Toggle theme</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme("light")}>
-                    Light
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    Dark
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme("system")}>
-                    System
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
-function DatePickerDemo() {
-    const [date, setDate] = useState<Date | undefined>(new Date());
-
-    useEffect(() => {
-        console.log("date", format(date as Date, "eeee"));
-    }, [date]);
-
-    return (
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-[240px] justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                    )}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                />
-            </PopoverContent>
-        </Popover>
-    );
-}
-
-function AvatarDemo({ user }: { user: User | null }) {
-    return (
-        <Avatar>
-            {user ? (
-                <AvatarImage
-                    src="https://firebasestorage.googleapis.com/v0/b/random-90ee8.appspot.com/o/PP-min.png?alt=media&token=6fe5f731-f25a-404e-862f-4f0f4ebbfa0d"
-                    alt="@giselledunine"
-                />
+        <div className="flex gap-2 flex-wrap">
+            {moviesByDay ? (
+                moviesByDay.map((showtime: string, index: number) => (
+                    <Button key={index}>{showtime}</Button>
+                ))
             ) : (
-                <AvatarFallback>CN</AvatarFallback>
+                <p>No showtimes</p>
             )}
-        </Avatar>
+        </div>
     );
 }
 
@@ -124,6 +69,7 @@ export default function Home() {
     const [user, setUser] = useState<User | null>(null);
     const [movies, setMovies] = useState<Movie[]>([]);
     const [moviesDisplay, setMoviesDisplay] = useState<Movie[]>([]);
+    const [date, setDate] = useState<Date>(new Date());
 
     useEffect(() => {
         fetchUser();
@@ -150,51 +96,78 @@ export default function Home() {
 
     const handleSearch = (search: string) => {
         const filteredMovies = movies.filter((movie) =>
-            movie.title.toLowerCase().includes(search.toLowerCase())
+            movie.movie_title.toLowerCase().includes(search.toLowerCase())
         );
         setMoviesDisplay(filteredMovies);
     };
 
     return (
-        <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen gap-16 font-[family-name:var(--font-geist-sans)]">
-            <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-                <div className="flex items-center justify-between w-full">
+        <div className="grid grid-rows-[auto_1fr_20px] items-center justify-items-center min-h-screen gap-16 font-[family-name:var(--font-geist-sans)]">
+            <header className="flex row-start-1 items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full p-4">
                     <ModeToggle />
-                    <AvatarDemo user={user} />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <AvatarIcon user={user} />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 mx-4">
+                            <DropdownMenuItem className="cursor-pointer">
+                                Mon compte
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer">
+                                Mes réservations
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer text-red-500">
+                                Déconnexion
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-                <h1 className="text-4xl font-extrabold lg:text-5xl">
+            </header>
+            <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+                <h1 className="text-4xl font-extrabold lg:text-5xl font-[Thunder]">
                     Movies Rerservation
                 </h1>
-                <div className="flex w-full items-center space-x-2">
+                <div className="flex w-full items-center space-x-2 md:flex-row flex-col">
                     <Input
                         type="movie"
                         placeholder="Nom du film"
                         onChange={(e) => handleSearch(e.target.value)}
                     />
-                    <DatePickerDemo />
+                    <DatePicker date={date} setDate={setDate} />
                 </div>
                 <div className="w-full flex flex-col gap-4">
                     {moviesDisplay.map((movie) => (
-                        <Card className="w-[100%]" key={movie.id}>
+                        <Card className="w-[100%]" key={movie.movie_id}>
                             <CardHeader>
                                 <div className="flex gap-2 justify-between">
                                     <div>
                                         <CardTitle className=" text-2xl">
-                                            {movie.title}
+                                            {movie.movie_title}
                                         </CardTitle>
                                         <CardDescription>
-                                            {movie.description}
+                                            {movie.genre_name}
                                         </CardDescription>
                                     </div>
-                                    <Skeleton className="h-[125px] w-[95px] rounded-xl" />
+                                    {movie.movie_poster ? (
+                                        <Image
+                                            className="rounded-xl"
+                                            src={movie.movie_poster}
+                                            alt={movie.movie_title}
+                                            width={100}
+                                            height={100}
+                                        />
+                                    ) : (
+                                        <Skeleton className="h-[125px] w-[95px] rounded-xl" />
+                                    )}
                                 </div>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="flex flex-col gap-2">
                                 <h3 className="text-md font-semibold">
                                     Horraires
                                 </h3>
+                                <MovieSchedule date={date} movie={movie} />
                             </CardContent>
-                            <CardFooter></CardFooter>
                         </Card>
                     ))}
                 </div>
