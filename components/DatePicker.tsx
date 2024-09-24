@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -37,13 +37,14 @@ export function DatePicker({
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0" align="center">
                 <Calendar
                     mode="single"
                     selected={date}
                     onSelect={(selectedDate: Date | undefined) =>
                         selectedDate && setDate(selectedDate)
                     }
+                    disabled={(date) => date < subDays(new Date(), 1)}
                     initialFocus
                 />
             </PopoverContent>

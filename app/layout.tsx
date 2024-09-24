@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReactNode } from "react";
-
+import MenuBar from "@/components/MenuBar";
+import Title from "@/components/Title";
+import { Toaster } from "@/components/ui/toaster";
 type RootLayoutProps = {
     children: ReactNode;
 };
@@ -23,7 +25,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
                         defaultTheme="system"
                         enableSystem
                         disableTransitionOnChange>
-                        {children}
+                        <>
+                            <MenuBar />
+                            <Title>MOVIES</Title>
+                            {children}
+                            <Toaster />
+                        </>
                     </ThemeProvider>
                 </body>
             </html>
