@@ -47,6 +47,14 @@ export default withAuth(
                     "http://localhost:3000",
                     "https://movies.sophiahmamouche.com/",
                 ];
+                console.log(
+                    origin,
+                    allowedOrigins.find((allowed) =>
+                        origin.startsWith(allowed)
+                    ),
+                    pathname,
+                    pathname.startsWith("/management")
+                );
 
                 if (
                     (allowedOrigins.find((allowed) =>
