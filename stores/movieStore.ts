@@ -42,6 +42,14 @@ export type UpdateMovieType = ReplaceType<
     genres: number[];
 };
 
+export type ErrorObject = {
+    error: {
+        message: string;
+        err: Error;
+    };
+    status: number;
+};
+
 // export type UoMovieType = ReplaceType<
 //     Prisma.MovieCreateInput,
 //     "movie_poster",
@@ -59,10 +67,12 @@ interface MovieState {
     getMovie: (movie_id: number) => Promise<void>;
     getGenres: () => Promise<Genre[]>;
     removeMovies: (movie_id: number) => Promise<void>;
-    addMovie: (datas: AddMovieType) => Promise<MovieWithGenreAndShowtimes>;
+    addMovie: (
+        datas: AddMovieType
+    ) => Promise<MovieWithGenreAndShowtimes | ErrorObject>;
     updateMovies: (
         datas: UpdateMovieType
-    ) => Promise<MovieWithGenreAndShowtimes>;
+    ) => Promise<MovieWithGenreAndShowtimes | ErrorObject>;
 }
 
 export const useMovieStore = create<MovieState>((set, get) => ({

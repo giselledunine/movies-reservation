@@ -58,6 +58,7 @@ import {
     MovieWithGenreAndShowtimes,
     AddMovieType,
     UpdateMovieType,
+    ErrorObject,
 } from "@/stores/movieStore";
 import { toast } from "@/hooks/use-toast";
 import { Genre } from "@prisma/client";
@@ -206,7 +207,9 @@ export default function MoviesManagement() {
                     }
                 )
                 .optional(),
-            genres: z.array(z.number()),
+            genres: z.array(z.number()).refine((value) => value.length > 0, {
+                message: "At least one genre is required",
+            }),
             movie_duration: z
                 .number()
                 .max(400, "The movie can't be mongueur than 3h30")
@@ -233,13 +236,6 @@ export default function MoviesManagement() {
                 | z.infer<typeof formSchemaAdd>
                 | z.infer<typeof formSchemaUpdate>
         ) {
-            // const datas: typeof values & {
-            //     previous_image_fullpath: string | undefined;
-            //     movie_id: number | undefined;
-            // } = {
-            //     ...values,
-            //     previous_image_fullpath: undefined,
-            //     movie_id: undefined,
             if (movie) {
                 const datas = {
                     ...values,
@@ -248,11 +244,22 @@ export default function MoviesManagement() {
                 };
                 await updateMovies(datas as UpdateMovieType)
                     .then((res) => {
-                        toast({
-                            variant: "default",
-                            title: "Film modifié",
-                            description: `Le film ${res.movie_title} a été modifié`,
-                        });
+                        if ((res as ErrorObject).status == 400) {
+                            toast({
+                                variant: "destructive",
+                                title: "Internal Erreur",
+                                description: (res as ErrorObject).error.message,
+                            });
+                        } else {
+                            toast({
+                                variant: "default",
+                                title: "Film modifié",
+                                description: `Le film ${
+                                    (res as MovieWithGenreAndShowtimes)
+                                        .movie_title
+                                } a été modifié`,
+                            });
+                        }
                     })
                     .catch((err) => {
                         toast({
@@ -270,17 +277,28 @@ export default function MoviesManagement() {
                 };
                 await addMovie(datas as AddMovieType)
                     .then((res) => {
-                        toast({
-                            variant: "default",
-                            title: "Film ajouté",
-                            description: `Le film ${res.movie_title} a été ajouté`,
-                        });
-                        setTabActiveElement("list");
+                        if ((res as ErrorObject).status == 400) {
+                            toast({
+                                variant: "destructive",
+                                title: "Error",
+                                description: (res as ErrorObject).error.message,
+                            });
+                        } else {
+                            toast({
+                                variant: "default",
+                                title: "Film ajouté",
+                                description: `Le film ${
+                                    (res as MovieWithGenreAndShowtimes)
+                                        .movie_title
+                                } a été ajouté`,
+                            });
+                            setTabActiveElement("list");
+                        }
                     })
                     .catch((err) => {
                         toast({
                             variant: "destructive",
-                            title: "Erreur",
+                            title: "Error",
                             description: err,
                         });
                     });
@@ -427,17 +445,17 @@ export default function MoviesManagement() {
                     />
                 </TableCell>
                 <TableCell>{movie.movie_title}</TableCell>
-                <TableCell className="hidden sm:block">
+                <TableCell className="hidden sm:table-cell">
                     {movie.movie_description}
                 </TableCell>
-                <TableCell className="hidden sm:block">
+                <TableCell className="hidden sm:table-cell">
                     {movie.genres.map((genre) => genre.genre_name).join(",")}
                 </TableCell>
                 <TableCell align="right">
-                    <div className="flex gap-2 w-fit">
+                    <div className="flex sm:flex-col gap-2 w-fit">
                         <Button
                             variant="outline"
-                            className="w-9 sm:w-fit"
+                            className="w-9 sm:w-full"
                             onClick={() =>
                                 handleRedirectProgrammation(movie.movie_id)
                             }>
@@ -446,7 +464,7 @@ export default function MoviesManagement() {
                         </Button>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="w-9 sm:w-fit">
+                                <Button className="w-9 sm:w-full">
                                     <Edit />
                                     <p className="hidden sm:block">Modifier</p>
                                 </Button>
@@ -472,7 +490,7 @@ export default function MoviesManagement() {
                             <DialogTrigger asChild>
                                 <Button
                                     variant="destructive"
-                                    className="w-9 sm:w-fit">
+                                    className="w-9 sm:w-full">
                                     <Trash />
                                     <p className="hidden sm:block">Supprimer</p>
                                 </Button>
@@ -524,13 +542,13 @@ export default function MoviesManagement() {
                             <TableRow>
                                 <TableHead>Image</TableHead>
                                 <TableHead>Nom du film</TableHead>
-                                <TableHead className="hidden sm:block">
+                                <TableHead className="hidden sm:table-cell">
                                     Description
                                 </TableHead>
-                                <TableHead className="hidden sm:block">
+                                <TableHead className="hidden sm:table-cell">
                                     Genre
                                 </TableHead>
-                                <TableHead align="right">Actions</TableHead>
+                                <TableHead align={"right"}></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

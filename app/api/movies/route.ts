@@ -65,36 +65,54 @@ export async function POST(request: NextRequest) {
 
         if (image instanceof File) {
             const moviesRef = ref(storage, movie.movie_poster_fullpath);
+            //throw NextResponse.json({ res }, { status: 400 });
             return await uploadBytes(moviesRef, image)
-                .then(async () => {
-                    const url = await getDownloadURL(moviesRef);
-                    movie.movie_poster = url;
-                    const newMovie = await prisma.movie
-                        .create({
-                            data: movie,
-                            include: {
-                                genres: true,
-                                showtimes: true,
-                            },
-                        })
-                        .then((res) => res)
-                        .catch(() => {
-                            return NextResponse.json(
-                                { error: "The datas couldn't be added" },
-                                { status: 400 }
-                            );
-                        });
-                    return NextResponse.json(newMovie);
-                })
+                .then(
+                    async () =>
+                        await getDownloadURL(moviesRef)
+                            .then(async (res: string) => {
+                                movie.movie_poster = res;
+                                return await prisma.movie
+                                    .create({
+                                        data: movie,
+                                        include: {
+                                            genres: true,
+                                            showtimes: true,
+                                        },
+                                    })
+                                    .then((res) => NextResponse.json(res))
+                                    .catch((err) =>
+                                        NextResponse.json({
+                                            error: {
+                                                message: "Prisma error",
+                                                err,
+                                            },
+                                            status: 400,
+                                        })
+                                    );
+                            })
+                            .catch((err) =>
+                                NextResponse.json({
+                                    error: {
+                                        message: "Couldn't get the dowload url",
+                                        err,
+                                    },
+                                    status: 400,
+                                })
+                            )
+                )
                 .catch((err) => {
                     console.error(err);
-                    return NextResponse.error();
+                    return NextResponse.json({
+                        error: { message: "Could upload the image", err },
+                        status: 400,
+                    });
                 });
         } else {
-            return NextResponse.json(
-                { error: "No files received.", status: 400 },
-                { status: 400 }
-            );
+            return NextResponse.json({
+                error: { message: ": No files received." },
+                status: 400,
+            });
         }
     }
 }
