@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -65,7 +65,10 @@ export default function TheaterManagement() {
     const [roomNumbersAvailable, setRoomNumberAvailable] = useState<number[]>([
         1,
     ]);
-    const initialRooms = Array.from({ length: 31 }, (_, idx) => idx + 1);
+    const initialRooms = useMemo(
+        () => Array.from({ length: 31 }, (_, idx) => idx + 1),
+        []
+    );
     const { toast } = useToast();
 
     const handleDelete = async (theaterID: number) => {
@@ -311,7 +314,7 @@ export default function TheaterManagement() {
         if (theaters.length === 0) {
             getTheaters();
         }
-    }, [theaters, getTheaters]);
+    });
 
     useEffect(() => {
         const rooms = theaters.map((theater) => theater.room_number);

@@ -39,11 +39,7 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account }) {
             // Exemple : Vérifier si l'utilisateur appartient à une organisation GitHub spécifique
-            // console.log({
-            //     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-            //     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-            //     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-            // });
+
             if (account?.provider === "github") {
                 const prismaUser = await prisma.user.findUnique({
                     where: {
