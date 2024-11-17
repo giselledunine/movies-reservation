@@ -46,6 +46,7 @@ export default withAuth(
                 const allowedOrigins = [
                     "http://localhost:3000",
                     "https://movies.sophiahmamouche.com/",
+                    "https://movies-reservation-afsge87x2-giselledunines-projects.vercel.app",
                 ];
                 console.log(
                     origin,
