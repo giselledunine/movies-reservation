@@ -26,8 +26,8 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
     // Matches the pages config in `[...nextauth]`
-    function middleware() {
-        //console.log("token", req.nextauth.token);
+    function middleware(req) {
+        console.log("token", req.nextauth.token);
     },
     {
         callbacks: {
@@ -37,19 +37,27 @@ export default withAuth(
                 const sensibleMethods = ["POST", "PATCH", "DELETE"].includes(
                     method
                 );
-                const origin = req.headers.get("origin") || "";
+                const origin =
+                    req.headers.get("origin") ||
+                    req.headers.get("referer") ||
+                    process.env.NODE_ENV == "production"
+                        ? `https://${req.headers.get("host")}`
+                        : `http://${req.headers.get("host")}`;
                 const allowedOrigins = [
                     "http://localhost:3000",
                     "https://movies.sophiahmamouche.com/",
                 ];
 
                 if (
-                    (allowedOrigins.includes(origin) &&
+                    (allowedOrigins.find((allowed) =>
+                        origin.startsWith(allowed)
+                    ) &&
                         pathname.startsWith("/management")) ||
                     (pathname.startsWith("/api") &&
                         !pathname.startsWith("/api/reservations") &&
                         sensibleMethods)
                 ) {
+                    console.log("token role", token?.role);
                     return token?.role === "admin";
                 } else if (
                     (allowedOrigins.includes(origin) &&
