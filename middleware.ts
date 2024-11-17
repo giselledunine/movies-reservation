@@ -37,31 +37,29 @@ export default withAuth(
                 const sensibleMethods = ["POST", "PATCH", "DELETE"].includes(
                     method
                 );
-                const origin =
-                    req.headers.get("origin") ||
-                    req.headers.get("referer") ||
-                    process.env.NODE_ENV == "production"
-                        ? `https://${req.headers.get("host")}`
-                        : `http://${req.headers.get("host")}`;
-                const allowedOrigins = [
-                    "http://localhost:3000",
-                    "https://movies.sophiahmamouche.com/",
-                    "https://movies-reservation-afsge87x2-giselledunines-projects.vercel.app",
-                ];
-                console.log(
-                    origin,
-                    allowedOrigins.find((allowed) =>
-                        origin.startsWith(allowed)
-                    ),
-                    pathname,
-                    pathname.startsWith("/management")
-                );
+                // const protocol =
+                //     req.headers.get("x-forwarded-proto") || "https";
+                // const origin =
+                //     req.headers.get("origin") ||
+                //     req.headers.get("referer") ||
+                //     `${protocol}://${req.headers.get("host")}`;
+                // const allowedOrigins = [
+                //     "http://localhost:3000",
+                //     "https://movies.sophiahmamouche.com/",
+                //     "https://movies-reservation-afsge87x2-giselledunines-projects.vercel.app",
+                // ];
+
+                // console.log(
+                //     origin,
+                //     allowedOrigins.find((allowed) =>
+                //         origin.startsWith(allowed)
+                //     ),
+                //     pathname,
+                //     pathname.startsWith("/management")
+                // );
 
                 if (
-                    (allowedOrigins.find((allowed) =>
-                        origin.startsWith(allowed)
-                    ) &&
-                        pathname.startsWith("/management")) ||
+                    pathname.startsWith("/management") ||
                     (pathname.startsWith("/api") &&
                         !pathname.startsWith("/api/reservations") &&
                         sensibleMethods)
@@ -69,8 +67,7 @@ export default withAuth(
                     console.log("token role", token?.role);
                     return token?.role === "admin";
                 } else if (
-                    (allowedOrigins.includes(origin) &&
-                        pathname.startsWith("/reservations")) ||
+                    pathname.startsWith("/reservations") ||
                     pathname.startsWith("/account")
                 ) {
                     return token ? true : false;
