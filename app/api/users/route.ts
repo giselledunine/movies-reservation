@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     if (request_type == "login") {
-        const cookieStore = cookies();
+        const cookieStore = await cookies();
         const user = await sql`SELECT * FROM users WHERE email = ${email}`
             .then(async (res) => {
                 const { password } = res.rows[0];
