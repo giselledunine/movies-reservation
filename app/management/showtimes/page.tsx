@@ -991,35 +991,6 @@ export default function ShowtimesManagement() {
                 <WeeklyShowtimes />
                 <DailyShowtimes />
             </div>
-            {/* <Tabs
-                value={tabActiveElement}
-                onValueChange={setTabActiveElement}
-                className="w-full">
-                <TabsList className="w-full">
-                    <TabsTrigger className="w-full" value="list">
-                        Liste des programmations
-                    </TabsTrigger>
-                    <TabsTrigger className="w-full" value="add">
-                        Ajouter une programmation
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="list">
-                    
-                </TabsContent>
-                <TabsContent value="add">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Salle de cinéma</CardTitle>
-                            <CardDescription>
-                                Ajouter une salle de cinéma
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            <MoviesForm />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs> */}
         </div>
     );
 }
