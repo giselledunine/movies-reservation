@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Card {
+  card_id         Int    @id @default(autoincrement())
+  card_number     Int
+  card_name       String @db.VarChar
+  expiration_date Int
+  user_id         Int
+  user            User   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user")
+}
+
+model Genre {
+  genre_id   Int     @id @default(autoincrement())
+  genre_name String  @db.VarChar(255)
+  movies     Movie[] @relation("MovieGenres")
+}
+
+model Movie {
+  movie_title           String        @db.VarChar(255)
+  created_at            DateTime      @default(now()) @db.Timestamp(6)
+  updated_at            DateTime      @default(now()) @updatedAt
+  movie_description     String        @db.VarChar(255)
+  movie_poster          String        @db.VarChar(255)
+  movie_poster_fullpath String        @db.VarChar(255)
+  movie_id              Int           @id @default(autoincrement())
+  movie_duration        Int
+  genres                Genre[]       @relation("MovieGenres")
+  reservations          Reservation[]
+  showtimes             Showtime[]
+}
+
+model Reservation {
+  reservation_id Int      @id @default(autoincrement())
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  updated_at     DateTime @default(now()) @updatedAt
+  user_id        Int
+  showtime_id    Int
+  seats          String[]
+  total_price    Int
+  movie_id       Int
+  movie          Movie    @relation(fields: [movie_id], references: [movie_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_movie")
+  showtime       Showtime @relation(fields: [showtime_id], references: [showtime_id], onDelete: NoAction, onUpdate: NoAction)
+  user           User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Showtime {
+  showtime_id     Int           @id @default(autoincrement())
+  created_at      DateTime      @default(now()) @db.Timestamp(6)
+  updated_at      DateTime      @default(now()) @updatedAt
+  movie_id        Int
+  show_date       DateTime      @db.Timestamp(6)
+  theater_id      Int
+  available_seats Int
+  reservations    Reservation[]
+  theater         Theater       @relation(fields: [theater_id], references: [theater_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_theatre")
+  movie           Movie         @relation(fields: [movie_id], references: [movie_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Theater {
+  theater_id  Int        @id(map: "theatres_pkey") @default(autoincrement())
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime   @default(now()) @updatedAt
+  rows        Int
+  columns     Int
+  room_number Int        @unique
+  showtimes   Showtime[]
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  user         User     @relation(fields: [userId], references: [user_id])
+  expires      DateTime
+}
+
+model User {
+  user_id      Int           @id @default(autoincrement())
+  name         String        @db.VarChar(255)
+  email        String        @unique @db.VarChar(255)
+  created_at   DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at   DateTime      @default(now()) @updatedAt
+  saved_card   Int?
+  password     String?       @db.VarChar
+  role         String        @db.VarChar
+  reservations Reservation[]
+  cards        Card[]
+  sessions     Session[]
+}
