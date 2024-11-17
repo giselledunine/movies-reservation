@@ -13,17 +13,17 @@ export type UserWithRoleSession = Session & {
 
 export const authOptions: NextAuthOptions = {
     // Configure one or more authentication providers
-    cookies: {
-        sessionToken: {
-            name: `__Secure-next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: "lax",
-                path: "/",
-                secure: process.env.NODE_ENV === "production",
-            },
-        },
-    },
+    // cookies: {
+    //     sessionToken: {
+    //         name: `__Secure-next-auth.session-token`,
+    //         options: {
+    //             httpOnly: true,
+    //             sameSite: "lax",
+    //             path: "/",
+    //             secure: process.env.NODE_ENV === "production",
+    //         },
+    //     },
+    // },
     providers: [
         GithubProvider({
             clientId: process.env.AUTH_GITHUB_ID as string,
@@ -36,15 +36,14 @@ export const authOptions: NextAuthOptions = {
         // ...add more providers here
     ],
     secret: process.env.NEXTAUTH_SECRET,
-    debug: true,
     callbacks: {
         async signIn({ user, account }) {
             // Exemple : Vérifier si l'utilisateur appartient à une organisation GitHub spécifique
-            console.log({
-                NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-                GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-                GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-            });
+            // console.log({
+            //     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+            //     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+            //     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+            // });
             if (account?.provider === "github") {
                 const prismaUser = await prisma.user.findUnique({
                     where: {
