@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect } from "react";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { format, subDays } from "date-fns";
@@ -12,6 +9,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export function DatePicker({
     date,
@@ -20,17 +18,14 @@ export function DatePicker({
     date: Date | undefined;
     setDate: (date: Date) => void;
 }) {
-    useEffect(() => {
-        console.log("date", format(date as Date, "eeee"));
-    }, [date]);
-
+    const [open, setOpen] = useState(false);
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant={"outline"}
                     className={cn(
-                        "w-full w-[240px] justify-start text-left font-normal",
+                        "w-full sm:w-[240px] justify-start text-left font-normal",
                         !date && "text-muted-foreground"
                     )}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -41,9 +36,10 @@ export function DatePicker({
                 <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={(selectedDate: Date | undefined) =>
-                        selectedDate && setDate(selectedDate)
-                    }
+                    onSelect={(selectedDate: Date | undefined) => {
+                        selectedDate && setDate(selectedDate);
+                        setOpen(false);
+                    }}
                     disabled={(date) => date < subDays(new Date(), 1)}
                     initialFocus
                 />

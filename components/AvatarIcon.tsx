@@ -1,21 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Session } from "next-auth";
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-}
-
-export function AvatarIcon({ user }: { user: User | null }) {
+export function AvatarIcon({ session }: { session?: Session }) {
     return (
         <Avatar>
-            {user ? (
+            {session?.user && (
                 <AvatarImage
-                    src="https://firebasestorage.googleapis.com/v0/b/random-90ee8.appspot.com/o/PP-min.png?alt=media&token=6fe5f731-f25a-404e-862f-4f0f4ebbfa0d"
-                    alt="@giselledunine"
+                    src={session?.user?.image as string}
+                    alt={session?.user?.image as string}
                 />
-            ) : (
-                <AvatarFallback>CN</AvatarFallback>
             )}
         </Avatar>
     );

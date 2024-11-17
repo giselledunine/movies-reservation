@@ -17,7 +17,6 @@ export default function Title({ children }: { children: React.ReactNode }) {
     }, []);
 
     const handleScroll = () => {
-        console.log("scroll");
         setScrollingDown(true);
     };
 
@@ -29,7 +28,7 @@ export default function Title({ children }: { children: React.ReactNode }) {
                 className="h-fit p-4 hover:bg-transparent">
                 <h1
                     className={cn(
-                        "transition-all duration-300 font-extrabold normal text-5xl sm:text-9xl md:text-9xl lg:text-9xl font-[ThunderLC] text-center",
+                        "transition-all duration-300 font-extrabold normal font-thunder text-5xl sm:text-9xl md:text-9xl lg:text-9xl text-center",
                         pathname !== "/" &&
                             "transition-all duration-300 text-5xl md:text-5xl lg:text-5xl",
                         scrollingDown &&
