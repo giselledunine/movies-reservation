@@ -77,6 +77,7 @@ import {
     startOfISOWeek,
     setISOWeek,
     setYear,
+    getISOWeek,
 } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { Prisma } from "@prisma/client";
@@ -110,7 +111,8 @@ export default function ShowtimesManagement() {
     const [loadAddMovie, setLoadAddMovie] = useState(false);
     const [open, setOpen] = useState(false);
     const [openAddMovie, setOpenAddMovie] = useState(false);
-    const [week, setWeek] = useState<number>(Number(format(new Date(), "w")));
+    const [week, setWeek] = useState<number>(getISOWeek(new Date()));
+    console.log("week", week);
     const [day, setDay] = useState<Date>(new Date());
     const [weekDisplay, setWeekDisplay] = useState<string>("Cette semaine");
     const moviesIDsList: string[] = movies.map((movie) =>
@@ -652,7 +654,7 @@ export default function ShowtimesManagement() {
             setISOWeek(setYear(new Date(), year), week)
         );
         const lastDateOfWeek = addDays(firstDateOfWeek, 6);
-        if (Number(format(new Date(), "w")) === week) {
+        if (getISOWeek(new Date()) === week) {
             setWeekDisplay("Cette semaine");
         } else {
             setWeekDisplay(
@@ -703,7 +705,7 @@ export default function ShowtimesManagement() {
     ]);
 
     useEffect(() => {
-        setWeek(Number(format(day, "w")));
+        setWeek(getISOWeek(day));
     }, [day]);
 
     const WeeklyShowtimes = () => {
