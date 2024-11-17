@@ -1,68 +1,197 @@
-import { sql } from "@vercel/postgres";
 import { NextRequest, NextResponse } from "next/server";
-
-export async function POST(request: NextRequest) {
-    function formatArray(value: string | undefined): string[] | undefined {
-        return value ? value.split(",") : (value as undefined);
-    }
-
-    function formatArrayForSQL(value: string[] | undefined): string | null {
-        if (Array.isArray(value)) {
-            console.log("array value", `{${value.join(",")}}`);
-            return `{${value.join(",")}}`;
-        }
-        return null;
-    }
-
-    const jours = [
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-    ];
-
-    const searchParams = request.nextUrl.searchParams;
-
-    try {
-        const movie_title = searchParams.get("movie_title") as string;
-        const movie_description = searchParams.get(
-            "movie_description"
-        ) as string;
-        const genre_id = searchParams.get("genre_id") as string;
-        const showtimes = jours.reduce((acc, jour) => {
-            acc[`${jour}_showtimes`] = formatArray(
-                searchParams.get(`${jour}_showtimes`) as string
-            );
-            return acc;
-        }, {} as Record<string, string[] | undefined>);
-        if (!movie_title || !movie_description)
-            throw new Error("Title and description required");
-        await sql`INSERT INTO Movies (movie_title, movie_description, genre_id, monday_showtimes, tuesday_showtimes, wednesday_showtimes, thursday_showtimes, friday_showtimes, saturday_showtimes, sunday_showtimes) 
-         VALUES (${movie_title}, ${movie_description}, ${genre_id}, 
-                 ${formatArrayForSQL(showtimes.monday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.tuesday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.wednesday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.thursday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.friday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.saturday_showtimes)}, 
-                 ${formatArrayForSQL(showtimes.sunday_showtimes)});`;
-    } catch (error) {
-        return NextResponse.error();
-    }
-
-    const movies = await sql`SELECT * FROM Movies;`;
-    return NextResponse.json(movies.rows);
-}
+import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject,
+} from "firebase/storage";
+import { storage } from "@/lib/firebase";
 
 export async function GET() {
     try {
-        const movies =
-            await sql`SELECT * FROM Movies JOIN genres ON movies.genre_id = genres.genre_id;`;
-        return NextResponse.json(movies.rows);
+        const movies = await prisma.movie.findMany({
+            include: {
+                genres: true,
+                showtimes: { include: { theater: true } },
+            },
+        });
+        return NextResponse.json(movies);
     } catch (error) {
         return NextResponse.error();
     }
+}
+
+export async function POST(request: NextRequest) {
+    //to get a formData sent in a body, use request.formData() not request.json()
+    const form = await request.formData();
+
+    if (!form) {
+        const { movie_id } = await request.json();
+
+        const movie = await prisma.movie
+            .findUnique({
+                where: {
+                    movie_id,
+                },
+                include: {
+                    genres: true,
+                    showtimes: {
+                        include: { theater: true },
+                    },
+                },
+            })
+            .then((res) => res)
+            .catch((err) => err);
+
+        return NextResponse.json(movie);
+    } else {
+        const image = form.get("movie_poster");
+        const genresForm = form.get("genres") as string;
+        const genres = genresForm?.split(",");
+        const movie: Prisma.MovieUncheckedCreateInput = {
+            movie_title: form.get("movie_title") as string,
+            movie_description: form.get("movie_description") as string,
+            movie_duration: Number(form.get("movie_duration")),
+            movie_poster: "",
+            movie_poster_fullpath: form.get("movie_poster_fullpath") as string,
+            genres: {
+                connect: genres?.map((genre) => ({
+                    genre_id: Number(genre),
+                })),
+            },
+        };
+
+        if (image instanceof File) {
+            const moviesRef = ref(storage, movie.movie_poster_fullpath);
+            return await uploadBytes(moviesRef, image)
+                .then(async () => {
+                    const url = await getDownloadURL(moviesRef);
+                    movie.movie_poster = url;
+                    const newMovie = await prisma.movie
+                        .create({
+                            data: movie,
+                            include: {
+                                genres: true,
+                                showtimes: true,
+                            },
+                        })
+                        .then((res) => res)
+                        .catch(() => {
+                            return NextResponse.json(
+                                { error: "The datas couldn't be added" },
+                                { status: 400 }
+                            );
+                        });
+                    return NextResponse.json(newMovie);
+                })
+                .catch((err) => {
+                    console.error(err);
+                    return NextResponse.error();
+                });
+        } else {
+            return NextResponse.json(
+                { error: "No files received.", status: 400 },
+                { status: 400 }
+            );
+        }
+    }
+}
+
+export async function PATCH(request: NextRequest) {
+    const form = await request.formData();
+    const image = form.get("movie_poster");
+    const previous_image_fullpath = form.get("previous_image_fullpath");
+    const movie_id = Number(form.get("movie_id"));
+    const genresForm = form.get("genres") as string;
+    const genres = genresForm?.split(",");
+    const movie: Prisma.MovieUncheckedUpdateInput = {
+        movie_title: form.get("movie_title") as string,
+        movie_description: form.get("movie_description") as string,
+        movie_duration: Number(form.get("movie_duration")),
+        genres: {
+            set: genres?.map((genre) => ({
+                genre_id: Number(genre),
+            })),
+        },
+    };
+    if (image instanceof File) {
+        const filename = image.name.replaceAll(" ", "_");
+        const fullpath = `movies/${filename}`;
+        const moviesRef = ref(storage, fullpath);
+        // add image to firebase storage
+        await uploadBytes(moviesRef, image).catch((err) => {
+            console.error(err);
+        });
+        const url = await getDownloadURL(moviesRef);
+        movie.movie_poster = url;
+        movie.movie_poster_fullpath = fullpath;
+        // update new movie with the url of the image and the fullpath for later use
+        const updateMovie = await prisma.movie
+            .update({
+                where: {
+                    movie_id,
+                },
+                data: movie,
+                include: {
+                    genres: true,
+                },
+            })
+            .then((res) => res)
+            .catch((err) => {
+                return err;
+                // return NextResponse.json(
+                //     { error: "The datas couldn't be added" },
+                //     { status: 400 }
+                // );
+            });
+        // get previous image ref
+        const previousImageRef = ref(
+            storage,
+            previous_image_fullpath as string
+        );
+        // delete previous image
+        await deleteObject(previousImageRef).catch(() =>
+            NextResponse.json(
+                { error: "The previous image couldn't be deleted" },
+                { status: 400 }
+            )
+        );
+        return NextResponse.json(updateMovie);
+    } else {
+        const updateMovie = await prisma.movie
+            .update({
+                where: {
+                    movie_id,
+                },
+                data: movie,
+                include: {
+                    genres: true,
+                },
+            })
+            .then((res) => res)
+            .catch(() => {
+                return NextResponse.json(
+                    { error: "Movie couldn't be updated", status: 400 },
+                    { status: 400 }
+                );
+            });
+        return NextResponse.json(updateMovie);
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    const { movie_id } = await request.json();
+    return await prisma.movie
+        .delete({
+            where: { movie_id },
+        })
+        .then((res) => {
+            return NextResponse.json(res);
+        })
+        .catch((err) => {
+            console.error(err);
+            return NextResponse.error();
+        });
 }
