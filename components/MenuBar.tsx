@@ -31,7 +31,7 @@ export default function MenuBar() {
     const { setSession } = useUserStore((state) => state);
     const session = useSession();
     const [isTop, setIsTop] = useState<boolean>(true);
-    const sessionWithRole = session.data as UserWithRoleSession;
+    const sessionWithRole = storeSession as UserWithRoleSession;
 
     useEffect(() => {
         if (session.data && !storeSession) {
