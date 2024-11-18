@@ -552,7 +552,11 @@ export function SeatPicker({
                     </>
                 ) : (
                     <DialogHeader>
-                        Connectez-vous pour pouvoir réserver une séance
+                        <DialogTitle>Connectez-vous</DialogTitle>
+                        <DialogDescription>
+                            Pour pouvoir réserver une séance vous devez être
+                            connecté
+                        </DialogDescription>
                     </DialogHeader>
                 )}
             </DialogContent>

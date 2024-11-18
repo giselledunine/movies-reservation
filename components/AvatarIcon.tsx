@@ -1,16 +1,17 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Session } from "next-auth";
+import { SessionContextValue } from "next-auth/react";
+import { Skeleton } from "./ui/skeleton";
 
-export function AvatarIcon({ session }: { session?: Session }) {
+export function AvatarIcon({ session }: { session: SessionContextValue }) {
     return (
         <Avatar>
-            {session?.user ? (
+            {session.data?.user ? (
                 <AvatarImage
-                    src={session?.user?.image as string}
-                    alt={session?.user?.image as string}
+                    src={session.data.user.image as string}
+                    alt={session.data.user.image as string}
                 />
             ) : (
-                <p>Image</p>
+                <Skeleton className="h-10 w-10 rounded-full" />
             )}
         </Avatar>
     );

@@ -58,6 +58,10 @@ export default withAuth(
                 //     pathname.startsWith("/management")
                 // );
 
+                if (pathname.startsWith("/login") && token) {
+                    return false;
+                }
+
                 if (
                     pathname.startsWith("/management") ||
                     (pathname.startsWith("/api") &&
@@ -84,5 +88,11 @@ export default withAuth(
 
 // Configurer les routes où le middleware doit s'appliquer
 export const config = {
-    matcher: ["/management/:path*", "/api/:path*", "/reservations", "/account"], // Appliquer le middleware sur toutes les routes commençant par /dashboard
+    matcher: [
+        "/management/:path*",
+        "/api/:path*",
+        "/reservations",
+        "/account",
+        "/login",
+    ], // Appliquer le middleware sur toutes les routes commençant par /dashboard
 };

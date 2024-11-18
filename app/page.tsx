@@ -37,6 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Prisma } from "@prisma/client";
 import { MovieWithGenreAndShowtimes, useMovieStore } from "@/stores/movieStore";
 import { useUserStore } from "@/stores/userStore";
+import { useSession } from "next-auth/react";
 
 type Criteria = {
     date?: Date;
@@ -56,7 +57,7 @@ export default function Home() {
         genre: 0,
         query: "",
     });
-    const { session } = useUserStore((state) => state);
+    const session = useSession();
 
     const filterMovies = useCallback(
         (movies: MovieWithGenreAndShowtimes[], criteria: Criteria) => {
@@ -229,9 +230,7 @@ export default function Home() {
                                             ).getTime() < new Date().getTime()
                                         }
                                         movie_id={movie.movie_id}
-                                        user_id={
-                                            session?.user.user_id as number
-                                        }
+                                        user_id={session?.data?.user?.user_id}
                                         showtime={showtime}
                                         rows={showtime.theater.rows}
                                         seatsPerRow={showtime.theater.columns}
