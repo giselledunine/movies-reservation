@@ -112,7 +112,6 @@ export default function ShowtimesManagement() {
     const [open, setOpen] = useState(false);
     const [openAddMovie, setOpenAddMovie] = useState(false);
     const [week, setWeek] = useState<number>(getISOWeek(new Date()));
-    console.log("week", week);
     const [day, setDay] = useState<Date>(new Date());
     const [weekDisplay, setWeekDisplay] = useState<string>("Cette semaine");
     const moviesIDsList: string[] = movies.map((movie) =>
@@ -644,7 +643,7 @@ export default function ShowtimesManagement() {
     // Refresh the showtime datas for available seats etc ...
     const handleRefresh = async () => {
         setRefreshLoading(true);
-        await getMovie(Number(movie_id)).then(() => setRefreshLoading(false));
+        await getMovie(movie_id as string).then(() => setRefreshLoading(false));
     };
 
     // Display the week infos
@@ -943,10 +942,19 @@ export default function ShowtimesManagement() {
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Ajoutez une séance</DialogTitle>
+                            </DialogHeader>
                             <ShowtimesForm />
                         </DialogContent>
                     </Dialog>
-                    <Button onClick={() => handleRefresh()}>
+                    <Button
+                        disabled={
+                            Object.values(showtimesDaily).length == 0
+                                ? true
+                                : false
+                        }
+                        onClick={() => handleRefresh()}>
                         <UpdateIcon
                             className={refreshLoading ? "animate-spin" : ""}
                         />

@@ -26,14 +26,13 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     //to get a formData sent in a body, use request.formData() not request.json()
     const form = await request.formData();
+    const movie_id = form.get("movie_id");
 
-    if (!form) {
-        const { movie_id } = await request.json();
-
+    if (movie_id) {
         const movie = await prisma.movie
             .findUnique({
                 where: {
-                    movie_id,
+                    movie_id: Number(movie_id),
                 },
                 include: {
                     genres: true,

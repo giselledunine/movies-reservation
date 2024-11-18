@@ -64,7 +64,7 @@ interface MovieState {
     genres: Genre[];
     setSelectedMovie: (movie_id: number) => Promise<void>;
     getMovies: () => Promise<MovieWithGenreAndShowtimes[]>;
-    getMovie: (movie_id: number) => Promise<void>;
+    getMovie: (movie_id: string) => Promise<void>;
     getGenres: () => Promise<Genre[]>;
     removeMovies: (movie_id: number) => Promise<void>;
     addMovie: (
@@ -93,7 +93,7 @@ export const useMovieStore = create<MovieState>((set, get) => ({
         set(() => ({ movies }));
         return movies;
     },
-    getMovie: async (movie_id: number) => {
+    getMovie: async (movie_id: string) => {
         const refreshedMovie = await fetchMovie(movie_id);
         set(({ movies }) => {
             const replaced = movies?.map((movie) =>

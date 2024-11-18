@@ -20,11 +20,14 @@ const fetchGenres = async () => {
     }
 };
 
-const fetchMovie = async (movie_id: number, request_type = "movie_by_id") => {
+const fetchMovie = async (movie_id: string) => {
+    const formData = new FormData();
+    formData.append("movie_id", movie_id as string);
+
     try {
         const response = await fetch("/api/movies", {
             method: "POST",
-            body: JSON.stringify({ movie_id, request_type }),
+            body: formData,
         });
         const data = await response.json();
         return data;
