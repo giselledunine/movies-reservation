@@ -36,7 +36,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Prisma } from "@prisma/client";
 import { MovieWithGenreAndShowtimes, useMovieStore } from "@/stores/movieStore";
-import { useUserStore } from "@/stores/userStore";
 import { useSession } from "next-auth/react";
 
 type Criteria = {
