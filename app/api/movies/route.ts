@@ -205,8 +205,20 @@ export async function DELETE(request: NextRequest) {
         .delete({
             where: { movie_id },
         })
-        .then((res) => {
-            return NextResponse.json(res);
+        .then(async (res) => {
+            const previousImageRef = ref(
+                storage,
+                res.movie_poster_fullpath as string
+            );
+            // delete previous image
+            return await deleteObject(previousImageRef)
+                .then(() => NextResponse.json(res))
+                .catch(() =>
+                    NextResponse.json(
+                        { error: "The previous image couldn't be deleted" },
+                        { status: 400 }
+                    )
+                );
         })
         .catch((err) => {
             console.error(err);
