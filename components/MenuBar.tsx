@@ -26,7 +26,6 @@ export default function MenuBar() {
     const router = useRouter();
     const pathname = usePathname();
     const session = useSession();
-    console.log("session", session);
     const [isTop, setIsTop] = useState<boolean>(true);
 
     useEffect(() => {

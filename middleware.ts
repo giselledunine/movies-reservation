@@ -26,9 +26,7 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth(
     // Matches the pages config in `[...nextauth]`
-    function middleware(req) {
-        console.log("token", req.nextauth.token);
-    },
+    function middleware() {},
     {
         callbacks: {
             authorized: ({ token, req }) => {
@@ -68,7 +66,6 @@ export default withAuth(
                         !pathname.startsWith("/api/reservations") &&
                         sensibleMethods)
                 ) {
-                    console.log("token role", token?.role);
                     return token?.role === "admin";
                 } else if (
                     pathname.startsWith("/reservations") ||
